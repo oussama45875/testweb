@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cheering Board</title>
+    <style>
+        body {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+        .board {
+            background-color: #87CEFA;
+            padding: 40px;
+            border-radius: 10px;
+            text-align: center;
+            width: 600px;
+            position: relative;
+        }
+        img {
+            width: 250px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        .click-text {
+            font-size: 16px;
+            color: #555;
+            margin-top: 10px;
+        }
+        .pat-button {
+            display: none;
+            margin-top: 20px;
+            padding: 10px 20px;
+            background-color: #87CEFA;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        .quest-container {
+            background-color: #87CEFA;
+            padding: 10px;
+            font-size: 18px;
+            font-weight: bold;
+            border-radius: 5px;
+            margin-bottom: 10px;
+            text-align: center;
+            width: 620px;
+        }
+        .small-img {
+            width: 100px;
+            margin: 20px;
+        }
+        .timer {
+            font-size: 20px;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+        .action-button {
+            margin-top: 10px;
+            padding: 10px 20px;
+            background-color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        .image-container {
+            display: flex;
+            justify-content: space-between;
+            width: 100%;
+            padding: 0 50px;
+            margin-top: 20px;
+        }
+        .image-container img {
+            width: 150px;
+        }
+        .image-text {
+            font-size: 14px;
+            font-weight: bold;
+            color: #555;
+            text-align: center;
+        }
+        .lost-message, .won-message {
+            font-size: 18px;
+            margin-top: 20px;
+            font-weight: bold;
+        }
+        .talk-button {
+            margin-top: 20px;
+            padding: 10px 20px;
+            background-color: #87CEFA;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        .peace-text {
+            font-size: 14px;
+            color: #555;
+            font-weight: bold;
+            margin-left: 0px;
+        }
+        .audio-container {
+            position: fixed;
+            bottom: 10px;
+            left: 10px;
+            z-index: 1000;
+        }
+    </style>
+</head>
+<body>
+    <!-- Audio container (fixed position) -->
+    <div class="audio-container">
+        <audio id="bg-music" autoplay loop>
+            <source src="5 Minute Countdown Timer with Music For Kids!.mp3" type="audio/mpeg">
+        </audio>
+    </div>
+
+    <!-- Main content container -->
+    <div id="content-container">
+        <div class="board">
+            <h3 id="message">Mendokusai... Who made me wake up? Exams? Projects? That sounds like too much work...</h3>
+            <img id="nagi-img" src="sleeping_nagi.webp" alt="Nagi sleeping" onclick="changeMessage()">
+            <p id="click-text" class="click-text">Click on Nagi</p>
+        </div>
+        <button id="pat-button" class="pat-button" onclick="patNagi()">Pat Nagi</button>
+    </div>
+
+    <script>
+        let timerInterval;
+        let isClicked = false;
+
+        // Handle audio autoplay restrictions
+        document.addEventListener('click', function() {
+            const audio = document.getElementById('bg-music');
+            if (audio.paused) {
+                audio.play().catch(error => {
+                    console.log('Audio playback prevented:', error);
+                });
+            }
+        }, { once: true });
+
+        function changeMessage() {
+            document.getElementById("message").innerText = "Oh... Hello, Nives? Someone called Oussama said you were stressed about working or idk. He told me to do something about it. Guess I have no choice...";
+            document.getElementById("nagi-img").src = "waking_up_nagi.png";
+            document.getElementById("click-text").style.display = "none";
+            document.getElementById("pat-button").style.display = "inline-block";
+        }
+
+        function patNagi() {
+            isClicked = true;
+            document.getElementById("message").innerText = "H- hey stop it";
+            document.getElementById("nagi-img").src = "pat.png";
+            document.getElementById("click-text").innerText = "Click on Nagi to continue";
+            document.getElementById("pat-button").style.display = "none";
+            document.getElementById("click-text").style.display = "block";
+            document.getElementById("nagi-img").setAttribute("onclick", "startQuest()");
+        }
+
+        function startQuest() {
+            document.getElementById("content-container").innerHTML = ` 
+                <div class="quest-container">Quest: Save Nagi</div>
+                <div class="board">
+                    <h3>Mendokusai, the maid gorilla again...</h3>
+                    <div class="timer" id="timer">10</div>
+                    <div class="image-container">
+                        <div>
+                            <img class="small-img" src="cozy_nagi.png" alt="Cozy Nagi" id="left-img">
+                        </div>
+                        <div>
+                            <img class="small-img" src="angy_barou.png" alt="Angry Barou" id="right-img">
+                        </div>
+                    </div>
+                    <button class="action-button" onclick="stopBall()">Stop The Ball</button>
+                </div>
+            `;
+            startTimer();
+        }
+
+        function startTimer() {
+            let timeLeft = 10;
+            const timerElement = document.getElementById("timer");
+            timerInterval = setInterval(() => {
+                timeLeft--;
+                timerElement.innerText = timeLeft;
+                if (timeLeft <= 0) {
+                    clearInterval(timerInterval);
+                    timerElement.innerText = "Time's up!";
+                    endQuest(false);
+                }
+            }, 1000);
+        }
+
+        function endQuest(isClicked) {
+            const leftImg = document.getElementById("left-img");
+            const rightImg = document.getElementById("right-img");
+            rightImg.src = "barou.png";
+            document.querySelector(".action-button").style.display = "none";
+
+            if (isClicked) {
+                leftImg.src = "won.png";
+                const leftText = document.createElement("p");
+                leftText.className = "image-text";
+                leftText.innerText = "I barely moved";
+                const rightText = document.createElement("p");
+                rightText.className = "image-text";
+                rightText.innerText = "Ughhh";
+                leftImg.parentElement.appendChild(leftText);
+                rightImg.parentElement.appendChild(rightText);
+
+                const wonMessage = document.createElement("div");
+                wonMessage.className = "won-message";
+                wonMessage.innerText = "You saved Nagi!";
+                document.getElementById("content-container").appendChild(wonMessage);
+            } else {
+                leftImg.src = "lost.webp";
+                const leftText = document.createElement("p");
+                leftText.className = "image-text";
+                leftText.innerText = "i want to go back to sleep";
+                const rightText = document.createElement("p");
+                rightText.className = "image-text";
+                rightText.innerText = "Pathetic";
+                leftImg.parentElement.appendChild(leftText);
+                rightImg.parentElement.appendChild(rightText);
+
+                const lostMessage = document.createElement("div");
+                lostMessage.className = "lost-message";
+                lostMessage.innerText = "Lost!";
+                document.getElementById("content-container").appendChild(lostMessage);
+            }
+
+            const talkButton = document.createElement("button");
+            talkButton.className = "talk-button";
+            talkButton.innerText = "Talk to Nagi";
+            talkButton.onclick = function() { talkToNagi(); };
+            document.getElementById("content-container").appendChild(talkButton);
+        }
+
+        function talkToNagi() {
+            document.getElementById("content-container").innerHTML = ` 
+                <div class="board">
+                    <h3>Hey Nives, Exams are just another game. Once you learn the mechanics, it’s easy.</h3>
+                    <img src="nagi-blue-lock.png" alt="Nagi" style="width: 250px; border-radius: 5px;">
+                    <p class="click-text">Click on Nagi to continue</p>
+                </div>
+            `;
+            document.querySelector("img").setAttribute("onclick", "nextStage()");
+        }
+
+        function nextStage() {
+            document.getElementById("content-container").innerHTML = ` 
+                <div class="board">
+                    <h3>Projects? Just break them into small parts. Like puzzle pieces. I’m good at those.</h3>
+                    <img src="heart_nagi.png" alt="Nagi" style="width: 250px; border-radius: 5px;">
+                    <p class="click-text">Click on Nagi to continue</p>
+                </div>
+            `;
+            document.querySelector("img").setAttribute("onclick", "nextStage2()");
+        }
+
+        function nextStage2() {
+            document.getElementById("content-container").innerHTML = `
+                <div class="board">
+                    <h3>Don’t overthink it. And if you get stuck... just take a nap. Works for me.</h3>
+                    <img src="eepy.jpg" alt="Nagi sleeping" style="width: 250px; border-radius: 5px;">
+                    <p class="click-text">Click on Nagi to continue</p>
+                </div>
+            `;
+            document.querySelector("img").setAttribute("onclick", "finalStage()");
+        }
+
+        function finalStage() {
+            document.getElementById("content-container").innerHTML = ` 
+                <div class="board">
+                    <h3>ughhhhh so much effort...let me rest now. Do your best, I believe in You Nives</h3>
+                    <img src="hehe.jpg" alt="Nagi" style="width: 250px; border-radius: 5px;" onclick="showReoMessage()">
+                    <p class="click-text">Click to continue</p>
+                </div>
+            `;
+        }
+
+        function showReoMessage() {
+            document.getElementById("content-container").innerHTML = `
+                <div class="board">
+                    <h3>Nives i'm Reo, I should take Nagi to rest. As he said we believe in you <3</h3>
+                    <div style="display: flex; align-items: center; justify-content: center; margin-top: 20px;">
+                        <img src="nagri.png" alt="Nagi and Reo" style="width: 250px; border-radius: 5px;" onclick="showNagiReturn()">
+                        <p class="peace-text">peaceee</p>
+                    </div>
+                    <p class="click-text">Click on Nagi to continue</p>
+                </div>
+            `;
+        }
+
+        function showNagiReturn() {
+            document.getElementById("content-container").innerHTML = `
+                <div class="board">
+                    <h3>Hey Nives i'm back, Make me proud of you</h3>
+                    <img src="maid.jpg" alt="Maid Nagi" style="width: 250px; border-radius: 5px;" onclick="finalMessage()">
+                    <p class="click-text">Click on Barou to continue</p>
+                </div>
+            `;
+        }
+
+        function finalMessage() {
+            document.getElementById("content-container").innerHTML = `
+                <div class="board">
+                    <h3>You got this vlla, break a leg <3</h3>
+                </div>
+            `;
+        }
+
+        function stopBall() {
+            clearInterval(timerInterval);
+            document.getElementById("timer").innerText = "You stopped the ball!";
+            endQuest(true);
+        }
+    </script>
+</body>
+</html>
